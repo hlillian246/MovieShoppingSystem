@@ -1,0 +1,28 @@
+serviceConfig:
+  scheme: http://
+  hostName: andromeda-71.ics.uci.edu
+  port: 7622
+  path: /api/movies
+
+loggerConfig:
+  outputDir: ./logs/
+  outputFile: movies.log
+
+databaseConfig:
+  dbUsername: cs122b_db43
+  dbPassword: BUXc2KZ57XOJ
+  dbHostname: colin-baker-v3.ics.uci.edu
+  dbPort: 3306
+  dbDriver: com.mysql.cj.jdbc.Driver
+  dbName: cs122b_db43
+  dbSettings: ?autoReconnect=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=PST
+
+idmConfig:
+  scheme: http://
+  hostName: andromeda-71.ics.uci.edu
+  port: 7623
+  path: /api/idm
+
+
+idmEndpoints:
+  privilege: /privilege

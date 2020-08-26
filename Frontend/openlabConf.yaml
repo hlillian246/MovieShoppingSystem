@@ -1,0 +1,9 @@
+serviceConfig:
+  scheme: http://
+  hostName: andromeda-71.ics.uci.edu
+  port: 7625
+  path: /
+
+loggerConfig:
+  outputDir: ./logs/
+  outputFile: webserver.log

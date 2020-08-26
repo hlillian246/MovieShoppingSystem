@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+<html lang="en">
+   <head>
+      <meta charset="UTF-8">
+      <title>CS122B Movie Project</title>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.js"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
+      <!-- Latest compiled and minified JavaScript -->
+      <script src="configurations.js" type="text/javascript" defer="defer"></script>
+      <script src="register.js" type="text/javascript" defer="defer"></script>
+      <script src="login.js" type="text/javascript" defer="defer"></script>
+      <script src="cartRetrieve.js" type="text/javascript" defer="defer"></script>
+      <script src="cartUpdate.js" type="text/javascript" defer="defer"></script>
+      <script src="cartDelete.js" type="text/javascript" defer="defer"></script>
+      <script src="clearCart.js" type="text/javascript" defer="defer"></script>
+      <script src="orderHistory.js" type="text/javascript" defer="defer"></script>
+      <script src="checkOut.js" type="text/javascript" defer="defer"></script>
+      <script src="browseMovie.js" type="text/javascript" defer="defer"></script>
+      <script src="titleBrowse.js" type="text/javascript" defer="defer"></script>
+      <script src="genreBrowse.js" type="text/javascript" defer="defer"></script>
+      <script src="addCustomer.js" type="text/javascript" defer="defer"></script>
+      <script src="placeOrder.js" type="text/javascript" defer="defer"></script>
+      <script src="utils.js" type="text/javascript" defer="defer"></script>
+      <script src="clearMessages.js" type="text/javascript" defer="defer"></script>
+      <script src="searchByTitle.js" type="text/javascript" defer="defer"></script>
+      <script src="advSearch.js" type="text/javascript" defer="defer"></script>
+      <script src="loadMovieDetails.js" type="text/javascript" defer="defer"></script>
+
+
+      <script type="text/javascript">
+         $(document).ready(function(){
+            let activateTab = tabId=>{
+               let hash = '#'+tabId;
+               if($(hash).length > 0){//valid tab id
+                  $('ul.tabs li').removeClass('current');
+                  $('.tab-content').removeClass('current');
+
+                  $('.tab-link[data-tab='+tabId+']').addClass('current');
+                  $(hash).addClass('current');
+                  window.location.hash = hash;
+               }
+            };
+
+            window.activateTab = activateTab;
+
+            let hash = window.location.hash;
+            if(hash){//activate the tab defined in url hash
+               let tabId = hash.substr(1);
+               activateTab(tabId);
+            }
+
+            $('ul.tabs li').click(function(){
+               activateTab($(this).attr('data-tab'));
+            });
+
+            $("a.nav").each(function(){
+               var href = $(this).attr('href');
+               $(this).click(e=>{
+                  //e.preventDefault();
+                  //e.stopPropagation();
+                  let tabId = e.target.hash.substr(1);
+                  activateTab(tabId);
+               });
+            });
+         })
+      </script>
+      <style>
+         body{
+         margin-top: 40px;
+         font-family: 'Trebuchet MS', serif;
+         line-height: 1.6
+         }
+         .container{
+         width: 800px;
+         margin: 0 auto;
+         }
+         ul.tabs{
+         margin: 0px;
+         padding: 0px;
+         list-style: none;
+         }
+         ul.tabs li{
+         background: none;
+         color: #222;
+         display: inline-block;
+         padding: 10px 15px;
+         cursor: pointer;
+         }
+         ul.tabs li.current{
+         background: #ededed;
+         color: #222;
+         }
+         .tab-content{
+         display: none;
+         background: #ededed;
+         padding: 15px;
+         }
+         .tab-content.current{
+         display: inherit;
+         }
+
+         .dropbtn {
+            background-color: #2F4F4F;
+            color: white;
+            font-size: 14px;
+            padding: 2px;
+            min-width: 80px;
+            border-radius: 10px;
+            -moz-border-radius: 10px;
+            -webkit-border-radius: 10px;
+            margin:5px
+         }
+
+         .dropbtn1 {
+            background-color: #2F4F4F;
+            color: white;
+            font-size: 14px;
+            padding: 2px;
+            min-width: 60px;
+            border-radius: 10px;
+            -moz-border-radius: 10px;
+            -webkit-border-radius: 10px;
+            margin:5px
+         }
+
+         /* The container <div> - needed to position the dropdown content */
+         .dropdown {
+            position: relative;
+            display: inline-block;
+         }
+
+
+         /* Dropdown Content (Hidden by Default) */
+         .dropdown-content {
+            display: none;
+            position: absolute;
+            background-color: #f1f1f1;
+            min-width: 80px;
+            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+            z-index: 1;
+            max-height: calc(50vh - 9rem);
+            overflow-y: auto;
+         }
+
+
+         .dropdown-content4{
+            display: none;
+            position: absolute;
+            background-color: #f1f1f1;
+            min-width: 80px;
+            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+            z-index: 1;
+         }
+
+         /* Links inside the dropdown */
+         .dropdown-content a {
+            color: black;
+            padding: 12px 16px;
+            text-decoration: none;
+            display: block;
+         }
+
+         /* Change color of dropdown links on hover */
+         .dropdown-content a:hover {background-color: #ddd;}
+
+         /* Show the dropdown menu on hover */
+         .dropdown:hover .dropdown-content {display: block;}
+
+         /* Change the background color of the dropdown button when the dropdown content is shown */
+         .dropdown:hover .dropbtn {background-color: #3e8e41;}
+
+
+         /*.dropdown-content {*/
+         /*max-height: calc(50vh - 9rem);*/
+         /*overflow-y: auto;*/
+         /*}*/
+
+         .registerbtn {
+            background-color: #2F4F4F;
+            color: #FFFFFF;
+            padding: 10px;
+            border-radius: 10px;
+            -moz-border-radius: 10px;
+            -webkit-border-radius: 10px;
+            margin:5px
+         }
+
+         .loginbtn {
+            background-color: #2F4F4F;
+            color: #FFFFFF;
+            padding: 10px;
+            border-radius: 10px;
+            -moz-border-radius: 10px;
+            -webkit-border-radius: 10px;
+            margin:5px
+         }
+
+         .submitbtn {
+            background-color: #2F4F4F;
+            color: #FFFFFF;
+            padding: 5px;
+            font-size: 14px;
+            border-radius: 5px;
+            -moz-border-radius: 10px;
+            -webkit-border-radius: 10px;
+            margin:5px
+         }
+
+
+         .loginInputTable {
+            margin-left: 20px;
+            border-spacing: 5px;
+         }
+
+         .centerTable {
+            width:30%;
+            margin-left:30%;
+            margin-right:30%;
+         }
+
+         .centerTable1 {
+            width:80%;
+            margin-left:10%;
+            margin-right:10%;
+         }
+         .centerTable2 {
+            width: 80%;
+            margin-left:10%;
+            margin-right:10%;
+         }
+
+         .centerTable3 {
+            width:80%;
+         }
+
+         .centerTable4 {
+            width:60%;
+         }
+
+         .centerTable5 {
+            width:100%;
+         }
+
+         .centerTable6 {
+            width:100%;
+         }
+
+
+         .centerTable6#comparison td {
+            max-width: 250px;
+            min-width: 160px;
+            text-align: center;
+         }
+
+         .credentialBox {
+            width: 200px;
+         }
+
+         .uname {
+            width: 200px;
+         }
+
+         .quantity input {
+            background-color: #dadde5;
+            width: 30px;
+            height: 20px;
+            line-height: 1;
+            float: none;
+            display: block;
+            padding: 3;
+            margin: 3;
+            padding-left: 10px;
+            border: 3px solid #eee;
+
+            display: inline-block;
+            position: Relative;
+            border: 2px solid grey;
+            border-radius: 10px;
+            overflow: hidden;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            -khtml-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+         }
+
+         .centered-cell {
+            text-align: center;
+            padding-left: 3px;
+         }
+
+         .divc {
+            text-align: center;
+         }
+
+         .divd {
+            text-align: center;
+            width: 40px;
+         }
+
+         #showMe{
+            /*display:none;*/
+            background-color: #dadde5;
+         }
+
+         #advShowMe{
+            /*display:none;*/
+            background-color: #dadde5;
+         }
+
+         #listShowMe{
+            /*display:none;*/
+            background-color: #dadde5;
+         }
+
+         #browseShowMe{
+            /*display:none;*/
+            background-color: #dadde5;
+         }
+
+         #browseTitleShowMe{
+            /*display:none;*/
+            background-color: #dadde5;
+         }
+
+         #browseGenreShowMe{
+            /*display:none;*/
+            background-color: #dadde5;
+         }
+
+
+      </style>
+   </head>
+   <body>
+      <div class="container">
+         <ul class="tabs">
+			 <li class="tab-link current" data-tab="index" href="index" >Index</li>
+            <li class="tab-link" data-tab="login" href="login"> Login</li>
+            <li class="tab-link" data-tab="register" href="register" >Register</li>
+            <li class="tab-link" onclick="resetLimit()" data-tab="moviesearch" href = "moviesearch">Search Movies</li>
+            <!--li class="tab-link" data-tab="advSearch" href = "advSearch">Advanced Search</li-->
+
+            <li class="tab-link" onclick="createDropdown()" data-tab="browsemovies" href = "browsemovies">Browse Movies</li>
+            <li class="tab-link" onclick="loadCart()" data-tab="shoppingcart" href = "shoppingcart">Shopping Cart</li>
+            <li class="tab-link" onclick="loadOrderHistory()" data-tab="orderHistory" href = "orderHistory">Order History</li>
+<!--            <li class="tab-link" data-tab="checkout" href = "checkout">Check Out</li>-->
+
+
+         </ul>
+		  <div id="index" class = "tab-content current">
+			<div class="divc"><h2>Fabflix Movie Online Store</h2></div>
+
+             <div>
+                <p>
+                   Welcome to the Fabflix movie online shopping center!
+                </p>
+                <p>
+                   In this online movie shopping site, you will be able to browse your favorite movies with large
+                   varieties of categories.
+                </p>
+             </div>
+
+
+            <table class="centerTable6" border="1" cellpadding="2">
+               <tr>
+                  <td>
+                     <a class="nav" href="#login">Login</a>
+                  </td>
+                  <td>
+                     Login into your Fabflix account.
+                  </td>
+               </tr>
+
+               <tr>
+                  <td>
+                     <a class="nav" href="#register">Register</a></p>
+                  </td>
+                  <td>
+                     Register your Fabflix account. You will need a Fabflix account to browse and purchase movies.
+                  </td>
+               </tr>
+
+               <tr>
+                  <td>
+                     <a class="nav" href="#moviesearch">Movie Search</a></p>
+                  </td>
+                  <td>
+                     <p>
+                        You can search movies by title. Advanced search is also supported in which you will be
+                        able to search by title, director, year and genre.
+                     </p>
+                     <p>
+                        You can also rate movies, add movies to your shopping cart.
+                     </p>
+                  </td>
+               </tr>
+
+               <tr>
+                  <td>
+                     <a class="nav" href="#browsemovies">Browse Movies</a></p>
+                  </td>
+                  <td>
+                     <p>
+                        You can browse movies by character search of the title and by genre.
+                     </p>
+                     <p>
+                        You can also rate movies, add movies to your shopping cart.
+                     </p>
+                  </td>
+               </tr>
+
+               <tr>
+                  <td>
+                     <a class="nav" href="#shoppingcart">Shopping Cart</a></p>
+                  </td>
+                  <td>
+                     <p>
+                        You can list items in your shopping cart. You will be able to update quantities of items.
+                     </p>
+                     <p>
+                        You can also check out your cart, or clear your cart.
+                     </p>
+                  </td>
+               </tr>
+
+               <tr>
+                  <td>
+                     <a class="nav" href="#orderHistory">Order History</a></p>
+                  </td>
+                  <td>
+                     You can see your order transaction history.
+                  </td>
+               </tr>
+
+            </table>
+
+             <br>
+             <div>You can access each of the above tools by clicking the tabs at the top.</div>
+         </div>
+
+         <div id="login" class="tab-content">
+            <h2>Fabflix Login</h2>
+
+            <div class="container">
+               <form id = "loginForm">
+
+               <table border="0" class="loginInputTable" cellpadding="5">
+                  <tr><td>
+                     <label for="loginemail"><b>Username</b></label></td>
+
+                     <td><input id = "loginemail" type="text" placeholder="Enter Username" class="credentialBox" required></td></tr>
+                  <tr><td>
+                     <label for="loginpassword"><b>Password</b></label></td>
+                     <td><input id = "loginpassword" type="password" placeholder="Enter Password" class="credentialBox" required></td></tr>
+               </table>
+               <br>
+
+               <table border="0">
+                  <tr>
+                     <td>
+                        <button type="login" class="loginbtn">Login</button>
+                     </td>
+                     <td>
+                        <p>
+                           <div id="loginResult"></div>
+                        </p>
+                     </td>
+                  </tr>
+
+               </table>
+
+               </form>
+
+               <!--<table class="centerTable" align="center" cellpadding="10">-->
+                  <!--<tr>-->
+                     <!--<td>-->
+                        <!--<a class = "nav" href="#index">Index</a>-->
+                     <!--</td>-->
+                     <!--<td>-->
+                        <!--<a class = "nav" href="#register">Register</a>-->
+                     <!--</td>-->
+                  <!--</tr>-->
+               <!--</table>-->
+
+            </div>
+         </div>
+
+         <div id="register" class="tab-content">
+            <div class="container">
+               <p><b>Register Fabflix Account:</b></p>
+
+               <table border="0" class="loginInputTable" cellpadding="5">
+                  <tr>
+                     <td><label for="regemail"><b>Email</b></label></td>
+                     <td><input id = "regemail" type="text" placeholder="Enter Email" name="email" class="credentialBox" required></td>
+                  </tr>
+                  <tr>
+                     <td><label for="regpassword"><b>Password</b></label></td>
+                     <td><input id = "regpassword" type="password" placeholder="Enter Password" name="psw" class="credentialBox" required></td>
+                  </tr>
+                  <tr>
+                  <td><label for="confirm"><b>Confirm Password</b></label></td>
+                  <td><input id = "confirm" type="password" placeholder="Cinfirm Password" name="psw-repeat" class="credentialBox" required></td>
+                  </tr>
+               </table>
+
+               <br>
+
+               <table border="0">
+                  <tr>
+                     <td>
+                        <form id = "registerForm">
+                           <button type="submit" class="registerbtn">Register</button>
+                        </form>
+                     </td>
+                     <td>
+                        <p>
+                           <div id="registerResult"></div>
+                        </p>
+                     </td>
+                  </tr>
+
+               </table>
+
+            </div>
+
+            <br>
+            <div class="container signin">
+               <p>Already have an account? <a class="nav" href="#login">Sign in</a>.</p>
+            </div>
+         </div>
+
+		  <div id = "moviesearch" class = "tab-content">
+             <table class="centerTable2" align="center" cellpadding="10">
+                <tr>
+                   <td valign="top">
+                      <label for="title"><b>Movie Title</b></label><br>
+                      <input id ="title" type="text" placeholder="Enter Movie Title" name="movie title">
+
+                   </td>
+                   <td valign="top">
+                      <div><b>Order By</b></div>
+                      <form id="searchOrderby">
+                         <input id="seachOrderRating" type="radio" name="orderby" value="rating" checked="checked">
+                         <label for="seachOrderRating">Rating</label><br>
+                         <input id="seachOrderTitle" type="radio" name="orderby" value="title">
+                         <label for="seachOrderTitle">Title</label>
+                      </form>
+                   </td>
+                   <td valign="top">
+                      <div><b>Direction</b></div>
+                      <form id="searchDirection">
+                         <input id="searchDirectionDesc" type="radio" name="orderby" value="desc" checked="checked">
+                         <label for="searchDirectionDesc">DESC</label><br>
+                         <input id="searchDirectionAsc" type="radio" name="orderby" value="asc">
+                         <label for="searchDirectionAsc">ASC</label>
+                      </form>
+                   </td>
+                   <td valign="top">
+                      <table cellpadding="1">
+                         <tr>
+                            <td>
+                               <div class="dropdown"><button class="dropbtn1">Limit</button>
+                                  <div id="searchPageLimit" class="dropdown-content">
+                                     <a href="#" onclick="setSearchPageLimit(event)">10</a>
+                                     <a href="#" onclick="setSearchPageLimit(event)">25</a>
+                                     <a href="#" onclick="setSearchPageLimit(event)">50</a>
+                                     <a href="#" onclick="setSearchPageLimit(event)">100</a>
+                                  </div>
+                               </div>
+                            </td>
+                            <td>
+                               <div id="showMe" class="divd">10</div>
+                            </td>
+                         </tr>
+                      </table>
+                   </td>
+                </tr>
+                <tr>
+                   <td>
+                      <!--<form id = "titleForm" action="#movieListPage">-->
+                      <!--<button type="submit" class="submitbtn">Submit</button>-->
+                      <!--</form>-->
+
+                      <button type="submit" class="submitbtn" onclick="searchStartTitle()">Submit</button>
+
+                   </td>
+                   <td></td>
+                </tr>
+                <tr>
+                   <td>
+                      <p><a class = "nav" href="#advSearch">Advanced Search</a></p>
+                   </td>
+                   <td></td>
+                </tr>
+             </table>
+
+
+             <p>
+                <div id="searchStatus"></div>
+             </p>
+		  </div>
+
+
+         <div id="advSearch" class = "tab-content">
+            <table class="centerTable2" align="center" cellpadding="10">
+               <tr>
+                  <td valign="top">
+                     <table class="centerTable5" align="center" cellpadding="5">
+                        <tr>
+                           <td valign="top"><label for="advtitle"><b>Movie Title</b></label></td>
+                           <td valign="top"><input id = "advtitle" type="text" placeholder="Enter title" name="title" required></td>
+                        </tr>
+                        <tr>
+                           <td valign="top"><label for="director"><b>Director</b></label></td>
+                           <td valign="top"><input id = "director" type="text" placeholder="Enter director" name="director" required></td>
+                        </tr>
+                        <tr>
+                           <td valign="top"><label for="year"><b>Year</b></label></td>
+                           <td valign="top"><input id = "year" type="text" placeholder="Enter year" name="year" required></td>
+                        </tr>
+                        <tr>
+                           <td valign="top"><label for="genre"><b>Genre</b></label></td>
+                           <td valign="top"><input id = "genre" type="text" placeholder="Enter genre" name="genre" required></td><td></td>
+                        </tr>
+                     </table>
+                  </td>
+                  <td valign="top">
+                     <table class="centerTable5" align="center" cellpadding="10">
+                        <tr>
+                           <td valign="top">
+                              <b>Order By</b>
+                              <form id="advSearchOrderby">
+                                 <input id="advSeachOrderRating" type="radio" name="orderby" value="rating" checked="checked">
+                                 <label for="advSeachOrderRating">Rating</label>
+                                 <input id="advSeachOrderTitle" type="radio" name="orderby" value="title">
+                                 <label for="advSeachOrderTitle">Title</label>
+                              </form>
+                           </td>
+                        </tr>
+                        <tr>
+                           <td valign="top">
+                              <div><b>Direction</b></div>
+                              <form id="advSearchDirection">
+                                 <input id="advearchDirectionDesc" type="radio" name="orderby" value="desc" checked="checked">
+                                 <label for="advearchDirectionDesc">DESC</label>
+                                 <input id="advearchDirectionAsc" type="radio" name="orderby" value="asc">
+                                 <label for="advearchDirectionAsc">ASC</label>
+                              </form>
+                           </td>
+                        </tr>
+                        <tr>
+                           <td valign="top">
+                              <table cellpadding="1">
+                                 <tr>
+                                    <td>
+                                       <div class="dropdown"><button class="dropbtn1">Limit</button>
+                                          <div id="advPageLimit" class="dropdown-content">
+                                             <a href="#" onclick="setAdvSearchPageLimit(event)">10</a>
+                                             <a href="#" onclick="setAdvSearchPageLimit(event)">25</a>
+                                             <a href="#" onclick="setAdvSearchPageLimit(event)">50</a>
+                                             <a href="#" onclick="setAdvSearchPageLimit(event)">100</a>
+                                          </div>
+                                       </div>
+                                    </td>
+                                    <td>
+                                       <div id="advShowMe" class="divd">10</div>
+                                    </td>
+                                 </tr>
+                              </table>
+                           </td>
+                        </tr>
+                     </table>
+                  </td>
+               </tr>
+               <tr>
+                  <td align="center">
+                     <button type="submit" class="submitbtn" onclick="advSearchStart()">Submit</button>
+                  </td>
+                  <td></td>
+                  <td></td>
+               </tr>
+            </table>
+            <p>
+               <div id="advSearchStatus"></div>
+            </p>
+
+         </div>
+
+         <div id="movieListPage" class = "tab-content">
+            <b>No Movie Search Results</b>
+         </div>
+
+         <div id="movieDetailPage" class = "tab-content">
+
+            <p>
+               <div id="movieDetails">No Movie Search Results</div>
+            </p>
+
+            <p>
+               <div id="movieDetailStatus"></div>
+            </p>
+
+         </div>
+
+         <div id="shoppingcart" class="tab-content">
+            <div id="cartDetails"></div>
+            <div id="cartStatus"></div>
+         </div>
+
+         <div id="browsemovies" class="tab-content">
+            <div id="browseTitle" class="divc"></div>
+            <table class="centerTable6" align="center" cellpadding="10">
+               <tr>
+                  <td id="letterDropdown" valign="top"></td>
+                  <td id="genreDropdown" valign="top"></td>
+                  <td id="orderBySection" valign="top"></td>
+                  <td id="directionSection" valign="top"></td>
+                  <td id="limitDropdown" valign="top"></td>
+               </tr>
+               <tr>
+                  <td></td>
+                  <td></td>
+                  <td id="hiddenSubmit"><br><br><br></td>
+                  <td></td>
+                  <td></td>
+               </tr>
+            </table>
+
+            <p>
+               <div id="browseMovieStatus"></div>
+            </p>
+
+         </div>
+
+         <div id = "orderHistory" class="tab-content">
+            <div id="historyDetails"> </div>
+            <div id="historyStatus"> </div>
+         </div>
+
+
+            <!--<div id = "orderhistory" class = "tab-content">-->
+            <!--</div>-->
+
+         <div id = "addCustomer" class = "tab-content">
+            <form id = "CustomerForm">
+
+               <table class="centerTable3" align="center" border="0" cellpadding="5">
+                  <tr><td>
+                     <label for="FName"><b>First Name</b></label></td>
+                     <td><input id = "Fname" type="text" placeholder="Enter First Name" class="credentialBox" required></td></tr>
+                  <tr><td>
+                  <label for="LName"><b>Last Name</b></label></td>
+                  <td><input id = "LName" type="text" placeholder="Enter Last Name" class="credentialBox" required></td></tr>
+
+                  <tr><td>
+                     <label for="ccId"><b>Credit Card Number</b></label></td>
+                     <td><input id = "ccId" type="text" placeholder="Enter Credit Card Number" class="credentialBox" required></td></tr>
+
+                  <tr><td>
+                     <label for="ExpDate"><b>Expiration Date</b></label></td>
+                     <td><input id = "ExpDate" type="text" placeholder="Enter Expiration Date: YYYY-MM-DD" class="credentialBox" required></td></tr>
+
+                  <tr><td>
+                     <label for="address"><b>Address</b></label></td>
+                     <td><input id = "address" type="text" placeholder="Enter Address" class="credentialBox" required></td></tr>
+               </table>
+               <br>
+               <table class="centerTable3" align="center" border="0">
+                  <tr>
+                     <td>
+                        <button type="addCust" class="submitbtn" onclick="AddCustomer()">Create Billing Account</button>
+                     </td>
+                     <td>
+                        <button type="goBack" class="submitbtn" onclick="goBackCheckout()">Go Back</button>
+                     </td>
+                  </tr>
+               </table>
+               <br>
+               <div id="customerInsertStatus"></div>
+            </form>
+         </div>
+
+         <div id="checkout" class = tab-content>
+            <div id="checkoutDetails"></div>
+            <div id="checkoutStatus"></div>
+            <br>
+            <div id="instructionLink" class="divc"></div>
+         </div>
+
+      </div>
+   </body>
+</html>
+
